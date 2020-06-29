@@ -15,7 +15,6 @@ Press 'q' to quit.
 
 import cv2
 import os
-import sys
 from utils.cv_resolution import set_res
 
 
