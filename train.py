@@ -1,85 +1,54 @@
 import cv2
 import numpy as np
-from keras_squeezenet import SqueezeNet
-from keras.optimizers import Adam
-from keras.utils import np_utils
-from keras.layers import Activation, Dropout, Convolution2D, GlobalAveragePooling2D
-from keras.models import Sequential
+from tensorflow import keras
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import os
 
-IMG_SAVE_PATH = 'image_data'
-
-CLASS_MAP = {
-    "rock": 0,
-    "paper": 1,
-    "scissors": 2,
-    "none": 3
-}
-
-NUM_CLASSES = len(CLASS_MAP)
-
-
-def mapper(val):
-    return CLASS_MAP[val]
-
+IMG_SAVE_PATH_TRAIN = 'image_data\\train'
+IMG_SAVE_PATH_TEST = 'image_data\\test'
 
 def get_model():
-    model = Sequential([
-        SqueezeNet(input_shape=(227, 227, 3), include_top=False),
-        Dropout(0.5),
-        Convolution2D(NUM_CLASSES, (1, 1), padding='valid'),
-        Activation('relu'),
-        GlobalAveragePooling2D(),
-        Activation('softmax')
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(150, 150, 3)),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+        tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D(2, 2),
+
+        # Flatten the results
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dropout(0.5),
+
+        # Hidden layer
+        tf.keras.layers.Dense(512, activation='relu'),
+        tf.keras.layers.Dense(4, activation='softmax')
     ])
     return model
 
 
-# load images from the directory
-dataset = []
-for directory in os.listdir(IMG_SAVE_PATH):
-    path = os.path.join(IMG_SAVE_PATH, directory)
-    if not os.path.isdir(path):
-        continue
-    for item in os.listdir(path):
-        # to make sure no hidden files get in our way
-        if item.startswith("."):
-            continue
-        img = cv2.imread(os.path.join(path, item))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (227, 227))
-        dataset.append([img, directory])
+def train_and_save_model(learning_rate, epochs):
+    # load images from the directory
+    training_dir = IMG_SAVE_PATH_TRAIN
+    training_dataGen = ImageDataGenerator(rescale=1.0 / 255)
+    train_generator = training_dataGen.flow_from_directory(training_dir, target_size=(150, 150),
+                                                           class_mode='categorical')
+    testing_dir = IMG_SAVE_PATH_TEST
+    testing_dataGen = ImageDataGenerator(rescale=1.0 / 255)
+    test_generator = testing_dataGen.flow_from_directory(testing_dir, target_size=(150, 150), class_mode='categorical')
 
-'''
-dataset = [
-    [[...], 'rock'],
-    [[...], 'paper'],
-    ...
-]
-'''
-data, labels = zip(*dataset)
-labels = list(map(mapper, labels))
+    model = get_model()
+    model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.RMSprop(lr=learning_rate), metrics=['accuracy'])
 
+    history = model.fit_generator(train_generator, epochs=epochs, validation_data=test_generator, verbose=1, )
 
-'''
-labels: rock,paper,paper,scissors,rock...
-one hot encoded: [1,0,0], [0,1,0], [0,1,0], [0,0,1], [1,0,0]...
-'''
+    test_loss, test_acc = model.evaluate_generator(test_generator)
+    print('\nTest accuracy:', test_acc)
 
-# one hot encode the labels
-labels = np_utils.to_categorical(labels)
+    # save the model for later use
+    model.save("rock-paper-scissors-model.h5")
 
-# define the model
-model = get_model()
-model.compile(
-    optimizer=Adam(lr=0.0001),
-    loss='categorical_crossentropy',
-    metrics=['accuracy']
-)
-
-# start training
-model.fit(np.array(data), np.array(labels), epochs=10)
-
-# save the model for later use
-model.save("rock-paper-scissors-model.h5")
+    return test_acc

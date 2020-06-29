@@ -1,0 +1,103 @@
+#:kivy 1.0.9
+
+<TrainScreen>:
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'ui/img/nans.jpg'
+
+    BoxLayout:
+        spacing: dp(20)
+        size_hint: .80, .80
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        orientation: "vertical"
+
+        Label:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: .2, .2
+            text: "Captura de datos"
+
+        GridLayout:
+            size_hint: .8, .8
+            orientation: 'vertical'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            spacing: dp(20)
+            cols: 2
+
+            ToggleButton:
+                id: train_button
+                text: "Train"
+                group: "model"
+                state: 'down'
+
+            ToggleButton:
+                id: test_button
+                text: "Test"
+                group: "model"
+
+            Label:
+                text: "Tipo"
+
+            Spinner:
+                id: type_spinner
+                text: 'Rock'
+                values: 'Rock', 'Paper', 'Scissors', 'None'
+
+            Label:
+                text: "Numero de muestras"
+
+            Spinner:
+                id: num_samples_spinner
+                text: '200'
+                values: '100', '200', '400', '800'
+
+        Button:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: .2, .2
+            text: "Capturar"
+            on_press:
+                root.gather_images_callback(type_spinner, num_samples_spinner, train_button)
+
+
+        Label:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: .2, .2
+            text: "Ajustes"
+
+        GridLayout:
+            size_hint: .8, .5
+            orientation: 'vertical'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            spacing: dp(20)
+            cols: 2
+
+            Label:
+                text: "Learning Rate"
+
+            Spinner:
+                id: learning_rate_spinner
+                text: '0.0001'
+                values: '0.0001', '0.001', '0.01', '0.1'
+
+            Label:
+                text: "Epochs"
+
+            Spinner:
+                id: epochs_spinner
+                text: '3'
+                values: '1', '3', '5', '10', '15'
+
+        Button:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: .2, .2
+            text: "Entrenar"
+            on_press:
+                root.train_model(learning_rate_spinner, epochs_spinner)
+
+
+        Button:
+            size_hint: .2, .2
+            text: "Atras"
+            on_press:
+                root.manager.current = 'menu'

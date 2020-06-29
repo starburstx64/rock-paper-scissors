@@ -1,0 +1,43 @@
+#:kivy 1.0.9
+
+<MenuButton@Button>:
+    elevation_normal: 10
+
+<MenuScreen>:
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'ui/img/wallpaper.png'
+
+    FloatLayout:
+        size_hint: .65, .65
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        BoxLayout:
+            size_hint: .8, .1
+            orientation: 'vertical'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+            Widget:
+                size_hint_y: 0.1
+
+            GridLayout:
+                spacing: dp(20)
+                cols: 3
+
+                MenuButton:
+                    size_hint_x: 1
+                    text: "Jugar"
+                    on_press:
+                        root.manager.current = 'select'
+
+                MenuButton:
+                    size_hint_x: 1
+                    text: "Entrenar Modelo"
+                    on_press:
+                        root.manager.current = 'train'
+
+                MenuButton:
+                    size_hint_x: 1
+                    text: "Salir"

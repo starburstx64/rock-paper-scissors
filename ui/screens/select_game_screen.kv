@@ -1,0 +1,31 @@
+#:kivy 1.0.9
+
+<SelectGameScreen>:
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'ui/img/wallpaper.png'
+
+    BoxLayout:
+        spacing: dp(20)
+        size_hint: .30, .30
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        orientation: "vertical"
+
+        BoxLayout:
+            orientation: "vertical"
+            Button:
+                text: "HUMAN VS AI"
+                on_press:
+                    root.play_callback()
+
+            Button
+                text:"HUMAN VS HUMAN"
+
+        Button
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: .30, .30
+            text: "Atras"
+            on_press:
+                root.manager.current = 'menu'
